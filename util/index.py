@@ -1,7 +1,14 @@
 # Metrics/Indexes
-from skimage.measure import compare_ssim, compare_psnr
+# from skimage.measure import compare_ssim, compare_psnr
+
+from skimage.metrics import structural_similarity as compare_ssim
+from skimage.metrics import peak_signal_noise_ratio as compare_psnr
+import torch
+import lpips 
+import cv2
 from functools import partial
 import numpy as np
+import cv2
 
 
 class Bandwise(object):
@@ -12,8 +19,10 @@ class Bandwise(object):
         C = X.shape[-1]
         bwindex = []
         for ch in range(C):
+            
             x = X[..., ch]
             y = Y[..., ch]
+            # y=cv2.resize(y,x.shape)
             index = self.index_fn(x, y)
             bwindex.append(index)
         return bwindex
@@ -57,8 +66,19 @@ def local_error(correct, estimate, window_size, window_shift):
 
 def quality_assess(X, Y):
     # Y: correct; X: estimate
+    # print(X)
+   
     psnr = np.mean(cal_bwpsnr(Y, X))
     ssim = np.mean(cal_bwssim(Y, X))
+
+    # Calculate LPIPS value
+
+    XX = torch.from_numpy(X.transpose(2, 0, 1))  # Convert X to PyTorch tensor
+    YY = torch.from_numpy(Y.transpose(2, 0, 1))  # Convert Y to PyTorch tensor
+
+    loss_fn_alex = lpips.LPIPS(net='alex', verbose=False)
+    lpips_value = loss_fn_alex(YY, XX).item()
+    
     lmse = local_error(Y, X, 20, 10)
     ncc = compare_ncc(Y, X)
-    return {'PSNR':psnr, 'SSIM': ssim, 'LMSE': lmse, 'NCC': ncc}
+    return {'PSNR':psnr, 'SSIM': ssim, 'LMSE': lmse, 'NCC': ncc, 'LPIPS': lpips_value}

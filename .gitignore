@@ -9,3 +9,8 @@ runs
 .rsyncignore
 bak
 *.zip
+
+results
+TestSet
+venv
+Backup

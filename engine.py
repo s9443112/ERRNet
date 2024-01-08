@@ -6,7 +6,8 @@ import os
 import sys
 from os.path import join
 from util.visualizer import Visualizer
-
+import matplotlib.pyplot as plt
+import csv
 
 class Engine(object):
     def __init__(self, opt):
@@ -87,9 +88,19 @@ class Engine(object):
         avg_meters = util.AverageMeters()
         model = self.model
         opt = self.opt
+        # print(opt)
+        # psnr = [] 
+        # ssim = []
+        # lpips = []
+        buffer = []
         with torch.no_grad():
             for i, data in enumerate(val_loader):                
                 index = model.eval(data, savedir=savedir, **kwargs)
+                buffer.append(index)
+                # print(buffer)
+                # psnr.append(index["PSNR"])
+                # ssim.append(index["SSIM"])
+                # lpips.append(index["LPIPS"])
                 avg_meters.update(index)
                 
                 util.progress_bar(i, len(val_loader), str(avg_meters))
@@ -104,6 +115,23 @@ class Engine(object):
                 print('saving the best model at the end of epoch %d, iters %d' % 
                     (self.epoch, self.iterations))
                 model.save(label='best_{}_{}'.format(loss_key, dataset_name))
+        # print(buffer)
+
+        fields = buffer[0].keys()
+
+        # 使用csv.writer写入CSV文件
+        with open("Others.csv", 'w', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(buffer)
+                
+        # plt.plot(range(0,100), psnr, 'red',label='psnr')
+        # plt.plot(range(0,100), ssim, 'green',label='ssim')
+        # plt.plot(range(0,100), lpips, 'blue',label='lpips')
+        # plt.legend(loc='upper right')
+        # plt.title("testdata_reflection_synthetic_table2")
+        # plt.show()
+        
 
         return avg_meters
 

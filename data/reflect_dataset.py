@@ -161,6 +161,7 @@ class CEILTestDataset(BaseDataset):
 
     def __getitem__(self, index):
         fn = self.fns[index]
+        print(fn)
         
         t_img = Image.open(join(self.datadir, 'transmission_layer', fn)).convert('RGB')
         m_img = Image.open(join(self.datadir, 'blended', fn)).convert('RGB')

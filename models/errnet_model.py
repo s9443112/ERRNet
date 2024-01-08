@@ -16,6 +16,9 @@ from models import arch
 from .base_model import BaseModel
 from PIL import Image
 from os.path import join
+import cv2
+
+
 
 
 def tensor2im(image_tensor, imtype=np.uint8):
@@ -109,12 +112,14 @@ class ERRNetBase(BaseModel):
 
             output_i = tensor2im(self.output_i)
             target = tensor2im(self.target_t)
-
+            # print(output_i)
+          
+           
             if self.aligned:
                 res = index.quality_assess(output_i, target)
             else:
                 res = {}
-
+           
             if savedir is not None:
                 if self.data_name is not None:
                     name = os.path.splitext(os.path.basename(self.data_name[0]))[0]
@@ -133,7 +138,7 @@ class ERRNetBase(BaseModel):
                     Image.fromarray(target.astype(np.uint8)).save(join(savedir, 'transmission_layer', str(self._count)+'.png'))
                     Image.fromarray(tensor2im(self.input).astype(np.uint8)).save(join(savedir, 'blended', str(self._count)+'.png'))
                     self._count += 1
-
+            
             return res
 
     def test(self, data, savedir=None):
